@@ -80,34 +80,40 @@ kind delete cluster --name scdf
 
 
 
-
-#!/bin/bash
-
-set -e
-
 # Criar um cluster KIND
+```sh 
 kind create cluster --name scdf-cluster
+```
 
 # Adicionar o repositório Helm do SCDF
+```sh
 helm repo add bitnami https://charts.bitnami.com/bitnami
 helm repo add scdf https://charts.spring.io/scdf
 helm repo update
+```
 
 # Criar namespace para o SCDF
+```sh
 kubectl create namespace scdf
+```
 
 # Implantar o PostgreSQL
+```sh
 helm install postgres bitnami/postgresql \
   --namespace scdf \
   --set global.postgresql.auth.postgresPassword=postgres \
   --set global.postgresql.auth.username=scdf \
   --set global.postgresql.auth.password=scdf \
   --set global.postgresql.auth.database=scdf
+```
 
 # Esperar o PostgreSQL estar pronto
+```sh
 kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=postgresql -n scdf --timeout=300s
+```
 
 # Implantar o Spring Cloud Data Flow
+```sh
 helm install scdf bitnami/spring-cloud-dataflow \
   --namespace scdf \
   --set server.database.url=jdbc:postgresql://postgres-postgresql.scdf.svc.cluster.local:5432/scdf \
@@ -116,9 +122,14 @@ helm install scdf bitnami/spring-cloud-dataflow \
   --set skipper.database.url=jdbc:postgresql://postgres-postgresql.scdf.svc.cluster.local:5432/scdf \
   --set skipper.database.username=scdf \
   --set skipper.database.password=scdf
+```
 
 # Port Foward
+```sh
 kubectl port-forward --namespace scdf svc/scdf-spring-cloud-dataflow-server 9090:8080
+```
 
 # Exibir os serviços implantados
+```sh
 kubectl get all -n scdf
+```
